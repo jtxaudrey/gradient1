@@ -1,0 +1,28 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Circles</title>
+    <link rel="stylesheet" href="style.css"> <!-- Link to CSS -->
+</head>
+<body>
+    <canvas id="gradientCanvas"></canvas> <!-- The canvas where we will draw the circles -->
+    <div id="glassEffect"></div> <!-- Glass effect overlay --> </div>
+    <!-- Control Panel -->
+    <div id="controlPanel">
+        <button id="changeColorButton">Change Color Palette</button>
+        <div id="colorsDisplay">
+            <h3>Circle Palette:</h3>
+            <ul id="circleColors">
+                <!-- Color list will be generated dynamically -->
+            </ul>
+            <h3>Background Color:</h3>
+            <p id="backgroundColorHex"></p>
+        </div>
+    </div>
+
+    <script src="script.js"></script> <!-- Link to JavaScript -->
+</body>
+</html>
