@@ -5,7 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Interactive Circles</title>
   <link rel="stylesheet" href="style.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+@import url('https://fonts.googleapis.com/css2?family=Assistant:wght@200..800&family=Exo:ital,wght@0,100..900;1,100..900&family=Inconsolata:wght@200..900&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
+</style>
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
 </head>
@@ -60,13 +62,14 @@
         <label for="circleCountSlider">Circles: <span id="circleCountValue">120</span></label>
         <input type="range" id="circleCountSlider" min="10" max="200" value="120" />
       </div>
+      <button id="resetDefaultsBtn">Reset Sliders</button>
     </div>
 
     <!-- Export Panel -->
     <div id="exportPanel" class="mini-panel hidden">
       <h3>Export</h3>
       <button id="saveImageBtn">Save Image</button>
-      <button id="resetDefaultsBtn">Reset Sliders</button>
+      
     </div>
   </div>
 

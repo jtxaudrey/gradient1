@@ -3,11 +3,11 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  font-family: "Inconsolata", monospace;
 }
 html, body {
   height: 100%;
   overflow: hidden;
-  font-family: 'Space Grotesk', sans-serif;
   background-color: black;
 }
 
@@ -43,13 +43,14 @@ canvas {
   left: 20px;
   z-index: 100;
   font-size: 24px;
-  background: black;
+  background: rgba(0, 0, 0, 0.70);
   color: white;
   border: none;
   border-radius: 6px;
   width: 40px;
   height: 40px;
   cursor: pointer;
+  backdrop-filter: blur(20px);
 }
 
 /* Horizontal Button Bar */
@@ -66,7 +67,7 @@ canvas {
   display: none;
 }
 .menu-buttons button {
-  background-color: black;
+  background-color: rgba(0, 0, 0, 0.7);
   color: white;
   border: none;
   padding: 8px 12px;
@@ -75,7 +76,7 @@ canvas {
   cursor: pointer;
 }
 .menu-buttons button:hover {
-  background-color: #333;
+  background-color: #333333a5;
 }
 
 /* Vertical Panel Stack */
@@ -93,8 +94,8 @@ canvas {
 
 /* Individual Panels */
 .mini-panel {
-  background-color: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(14px);
+  background-color: rgba(255, 255, 255, 0.424);
+  backdrop-filter: blur(36px);
   padding: 14px 16px;
   border-radius: 12px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
@@ -124,13 +125,15 @@ canvas {
   width: 20px;
   height: 20px;
   border-radius: 6px;
-  border: 1px solid #999;
-  box-shadow: 0 0 2px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
 }
 .colorInput {
-  width: 100px;
+  width: 80px;
   border: none;
   outline: none;
+  box-shadow: none;
+  border: none;
+  background: none;
 }
 
 /* Sliders */
@@ -166,7 +169,7 @@ canvas {
   width: 6px;
 }
 #panelContainer::-webkit-scrollbar-thumb {
-  background: #888;
+  background: #dcff67;
   border-radius: 4px;
 }
 
