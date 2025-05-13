@@ -161,48 +161,35 @@ circleCountSlider.addEventListener("input", () => {
 });
 
 // ========== Save Image with Blur Simulation ==========
-document.getElementById("saveImageBtn").addEventListener("click", async () => {
+/*document.getElementById("saveImageBtn").addEventListener("click", () => {
   const panelContainer = document.getElementById("panelContainer");
   const menuButtons = document.getElementById("menuButtons");
 
-  // Hide panels temporarily
+  // Hide UI panels temporarily
   panelContainer.style.display = "none";
   menuButtons.style.display = "none";
 
-  try {
-    const stream = document.documentElement.captureStream(1);
-    const video = document.createElement("video");
-    video.srcObject = stream;
-    video.play();
-
-    await new Promise(resolve => setTimeout(resolve, 100)); // wait for frame to draw
-
-    const track = stream.getVideoTracks()[0];
-    const imageCapture = new ImageCapture(track);
-    const bitmap = await imageCapture.grabFrame();
-
-    // Draw bitmap to canvas
-    const tempCanvas = document.createElement("canvas");
-    tempCanvas.width = bitmap.width;
-    tempCanvas.height = bitmap.height;
-    const ctx = tempCanvas.getContext("2d");
-    ctx.drawImage(bitmap, 0, 0);
-
-    // Download as PNG
-    const link = document.createElement("a");
-    link.download = "blurred_background.png";
-    link.href = tempCanvas.toDataURL("image/png");
-    link.click();
-
-    track.stop();
-  } catch (err) {
-    console.error("Screen capture failed:", err);
-    alert("Screen capture not supported.");
-  } finally {
-    // Restore panels
-    panelContainer.style.display = "";
-    menuButtons.style.display = "";
-  }
+  setTimeout(() => {
+    html2canvas(document.body, {
+      useCORS: true,
+      allowTaint: true,
+      backgroundColor: null,
+      scale: 2
+    }).then(canvas => {
+      const image = canvas.toDataURL("image/png");
+      const link = document.createElement("a");
+      link.download = "screenshot_with_blur.png";
+      link.href = image;
+      link.click();
+    }).catch(err => {
+      console.error("html2canvas failed:", err);
+      alert("Screenshot failed.");
+    }).finally(() => {
+      // Restore UI
+      panelContainer.style.display = "";
+      menuButtons.style.display = "";
+    });
+  }, 100); // Give browser a moment to re-render without UI
 });
 
 // ========== Record Full Page (DOM) ==========
@@ -234,7 +221,7 @@ domRecordBtn.addEventListener("click", async () => {
     console.error(err);
   }
 });
-
+*/
 // ========== Color Palette UI ==========
 function updateColorUI() {
   colorPaletteList.innerHTML = '';
@@ -334,6 +321,13 @@ document.querySelectorAll('.panel-toggle').forEach(button => {
     }
   });
 });
+
+// Hide the toggle button after 10 seconds
+setTimeout(() => {
+  const toggleWrapper = document.getElementById("toggleWrapper");
+  toggleWrapper.classList.add("hide-toggle");
+}, 10000);
+
 
 // ========== Initialize ==========
 glassEffect.style.backdropFilter = `blur(${blurAmount}px)`;

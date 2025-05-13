@@ -197,3 +197,27 @@ canvas {
     width: 100%;
   }
 }
+/* Wrap toggle button in a hover zone */
+#toggleWrapper {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  width: 60px;
+  height: 60px;
+  z-index: 100;
+}
+
+#togglePanelBtn {
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+#toggleWrapper.hide-toggle #togglePanelBtn {
+  opacity: 0;
+  pointer-events: none;
+}
+
+#toggleWrapper:hover #togglePanelBtn {
+  opacity: 1;
+  pointer-events: auto;
+}
