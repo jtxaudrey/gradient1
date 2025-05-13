@@ -1,220 +1,341 @@
+// ========== Canvas + Setup ==========
 const canvas = document.getElementById("gradientCanvas");
-const ctx = canvas.getContext('2d');
-
-// Set canvas size
+const ctx = canvas.getContext("2d");
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
-// Default metallic gel-like colors (orange, pink, purple tones)
-let colors = ['#FF9AAD', '#FF6B6B', '#FF9E2C', '#D6A3FF', '#BE33FF', '#F8D0B8']; // Restored color palette
-let colorProgress = new Array(120).fill(0); // Track color progress for each spot (120 circles)
+const glassEffect = document.getElementById("glassEffect");
 
-// Variables for mouse position
-let mouseX = 0;
-let mouseY = 0;
-let lastMouseX = 0;
-let lastMouseY = 0;
-let mouseInactiveTimer = null; // Timer for mouse inactivity
-let isMouseMoving = false; // To check if the mouse is moving
+const defaultSettings = {
+  blur: 90,
+  radius: 100,
+  shadow: 10,
+  count: 120,
+  smoothness: 7,
+  speed: 1.5,
+  colors: ['#1b0cec', '#FF9AAD', '#FF6B6B', '#FF9E2C', '#D6A3FF', '#BE33FF', '#F8D0B8']
+};
 
-// Variables to control the moving spots
-const numPoints = 120; // Increased number of points to 120
-const points = [];
+let blurAmount = defaultSettings.blur;
+let circleRadius = defaultSettings.radius;
+let shadowBlur = defaultSettings.shadow;
+let numPoints = defaultSettings.count;
+let smoothnessFactor = defaultSettings.smoothness;
+let speedFactor = defaultSettings.speed;
+let colors = [...defaultSettings.colors];
 
-// Store initial spots with random positions and velocities
-for (let i = 0; i < numPoints; i++) {
+let colorProgress = new Array(numPoints).fill(0.5);
+let points = [];
+let mouseX = canvas.width / 2;
+let mouseY = canvas.height / 2;
+let isMouseMoving = false;
+let mouseInactiveTimer = null;
+
+// ========== Point Initialization ==========
+function initPoints(count) {
+  points = [];
+  colorProgress = new Array(count).fill(0.5);
+  for (let i = 0; i < count; i++) {
     points.push({
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height,
-        originalX: Math.random() * canvas.width, // Save original position
-        originalY: Math.random() * canvas.height,
-        dx: (Math.random() - 0.5) * 2,  // Random horizontal velocity
-        dy: (Math.random() - 0.5) * 2,  // Random vertical velocity
-        radius: 100, // Fixed radius for all circles (100px radius)
-        randomOffset: Math.random() * 0.2, // Add slight random offset to color progress
-        isMovingToMouse: false // Flag to indicate if the circle is moving to the mouse position
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      dx: (Math.random() - 0.5) * speedFactor,
+      dy: (Math.random() - 0.5) * speedFactor,
+      radius: circleRadius,
+      randomOffset: Math.random() * 0.2,
+      isMovingToMouse: false,
     });
+  }
 }
+initPoints(numPoints);
 
-// Listen for mouse movement to track the mouse position
+// ========== Mouse Tracking ==========
 document.addEventListener("mousemove", (e) => {
-    lastMouseX = mouseX;
-    lastMouseY = mouseY;
-
-    mouseX = e.clientX;
-    mouseY = e.clientY;
-    isMouseMoving = true; // Mouse is moving
-
-    // Reset the inactivity timer when the mouse moves
-    clearTimeout(mouseInactiveTimer);
-    mouseInactiveTimer = setTimeout(() => {
-        isMouseMoving = false; // Set the mouse as inactive if there's no movement for a set time
-    }, 1000); // Mouse inactivity threshold (1 second)
+  mouseX = e.clientX;
+  mouseY = e.clientY;
+  isMouseMoving = true;
+  clearTimeout(mouseInactiveTimer);
+  mouseInactiveTimer = setTimeout(() => isMouseMoving = false, 1000);
 });
 
-// Function to interpolate between two colors
-function interpolateColors(c1, c2, t) {
-    let color1 = hexToRgb(c1);
-    let color2 = hexToRgb(c2);
-
-    let r = Math.round(color1.r + (color2.r - color1.r) * t);
-    let g = Math.round(color1.g + (color2.g - color1.g) * t);
-    let b = Math.round(color1.b + (color2.b - color1.b) * t);
-
-    return `rgb(${r},${g},${b})`;
-}
-
-// Convert hex color to RGB format
+// ========== Color Utilities ==========
 function hexToRgb(hex) {
-    let r = parseInt(hex.substr(1, 2), 16);
-    let g = parseInt(hex.substr(3, 2), 16);
-    let b = parseInt(hex.substr(5, 2), 16);
-    return { r, g, b };
+  return {
+    r: parseInt(hex.substr(1, 2), 16),
+    g: parseInt(hex.substr(3, 2), 16),
+    b: parseInt(hex.substr(5, 2), 16)
+  };
 }
 
-// Function to create a smooth color transition between multiple colors
+function interpolateColors(c1, c2, t) {
+  const a = hexToRgb(c1), b = hexToRgb(c2);
+  return `rgb(${Math.round(a.r + (b.r - a.r) * t)}, ${Math.round(a.g + (b.g - a.g) * t)}, ${Math.round(a.b + (b.b - a.b) * t)})`;
+}
+
 function getGradientColor(progress, offset) {
-    const colorCount = colors.length;
-    const t = (progress + offset) * (colorCount - 1); // Normalize progress for interpolation with offset
-    const index = Math.floor(t);
-    const nextIndex = (index + 1) % colorCount;
-
-    const color1 = colors[index];
-    const color2 = colors[nextIndex];
-    const interpolation = t - index;
-
-    return interpolateColors(color1, color2, interpolation);
+  const count = colors.length - 1;
+  const t = (progress + offset) * (count - 1);
+  const i = Math.floor(t) + 1;
+  const next = (i + 1 > count) ? 1 : i + 1;
+  return interpolateColors(colors[i], colors[next], t - Math.floor(t));
 }
 
-// Function to update the animation of the spots
+// ========== Animation ==========
 function createFluidEffect() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  points.forEach((p, i) => {
+    const dist = Math.hypot(mouseX - p.x, mouseY - p.y);
+    const t = dist / Math.hypot(canvas.width, canvas.height);
+    if (isMouseMoving) colorProgress[i] += (t - colorProgress[i]) * 0.05;
 
-    // Update each spot's position based on its velocity
-    points.forEach((point, index) => {
-        // Calculate the distance between the mouse and the spot
-        const dist = Math.sqrt((mouseX - point.x) ** 2 + (mouseY - point.y) ** 2);
-        const maxDist = Math.sqrt((canvas.width ** 2) + (canvas.height ** 2)); // Max distance for interpolation
-        const t = dist / maxDist; // Calculate transition factor
+    const color = getGradientColor(colorProgress[i], p.randomOffset);
+    const maxDistForPush = 160;
 
-        // Gradually shift the color of the gradient points based on the mouse distance
-        if (isMouseMoving) {
-            // Mouse is moving, update colors
-            colorProgress[index] = colorProgress[index] + (t - colorProgress[index]) * 0.05; // Smoother transition
-        }
-
-        // Get the color based on the mouse position with randomness in color transition
-        const color = getGradientColor(colorProgress[index], point.randomOffset); // Add slight random offset
-
-        // Apply movement based on mouse proximity: nudge away from mouse when close
-        const maxDistForPush = 160; // Increase the distance for stronger nudging
-        const pushFactor = isMouseMoving ? 7 : 10; // Faster movement when mouse is inactive
-
-        if (dist < maxDistForPush) {
-            // Calculate angle to the mouse and nudge the circle away
-            const angle = Math.atan2(mouseY - point.y, mouseX - point.x);
-            point.x -= Math.cos(angle) * pushFactor * (1 - t); // Nudging the circle away
-            point.y -= Math.sin(angle) * pushFactor * (1 - t); // Nudging the circle away
-        }
-
-        // If the mouse is inactive, move one of the nearby circles to fill the space
-        if (!isMouseMoving) {
-            if (!point.isMovingToMouse) {
-                // Move one circle to fill the space near the mouse
-                const angleToMouse = Math.atan2(mouseY - point.y, mouseX - point.x);
-                const speed = 1; // Speed of the circle moving towards the mouse
-                point.x += Math.cos(angleToMouse) * speed;
-                point.y += Math.sin(angleToMouse) * speed;
-
-                // Mark this point as moving towards the mouse
-                point.isMovingToMouse = true;
-
-                // Reset the flag after the circle has been moved
-                setTimeout(() => {
-                    point.isMovingToMouse = false;
-                }, 1000); // Reset after 1 second
-            }
-        }
-
-        // Continue the random movement behavior, ensuring the circle stays within bounds
-        point.x += point.dx; // Keep random horizontal movement
-        point.y += point.dy; // Keep random vertical movement
-
-        // Allow a bit of bleed beyond the edges, but restrict it slightly
-        if (point.x < -point.radius) point.x = canvas.width + point.radius; // Allow bleed off the left
-        if (point.x > canvas.width + point.radius) point.x = -point.radius; // Allow bleed off the right
-        if (point.y < -point.radius) point.y = canvas.height + point.radius; // Allow bleed off the top
-        if (point.y > canvas.height + point.radius) point.y = -point.radius; // Allow bleed off the bottom
-
-        // Apply a slight blur effect for the circles
-        ctx.shadowBlur = 10;
-        ctx.shadowColor = color;  // Set shadow to match the circle color
-
-        // Draw the spot as a circle
-        ctx.beginPath();
-        ctx.arc(point.x, point.y, point.radius, 0, Math.PI * 2);
-        ctx.fillStyle = color;
-        ctx.fill();
-    });
-
-    // Repeat the animation
-    requestAnimationFrame(createFluidEffect);
-}
-
-// Ensure the canvas resizes dynamically
-window.addEventListener('resize', () => {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-
-    // Recalculate circle positions when resizing
-    points.forEach(point => {
-        point.x = Math.random() * canvas.width;
-        point.y = Math.random() * canvas.height;
-    });
-});
-
-// Function to generate a random color palette
-function getRandomColorPalette() {
-    const randomPalette = [];
-    for (let i = 0; i < 6; i++) {
-        randomPalette.push(`#${Math.floor(Math.random()*16777215).toString(16)}`); // Random Hex Color
+    if (dist < maxDistForPush) {
+      const angle = Math.atan2(mouseY - p.y, mouseX - p.x);
+      const smoothFactor = 1 - t;
+      p.x -= Math.cos(angle) * smoothnessFactor * smoothFactor;
+      p.y -= Math.sin(angle) * smoothnessFactor * smoothFactor;
     }
-    return randomPalette;
+
+    if (!isMouseMoving && !p.isMovingToMouse) {
+      const angleToMouse = Math.atan2(mouseY - p.y, mouseX - p.x);
+      p.x += Math.cos(angleToMouse) * 0.5;
+      p.y += Math.sin(angleToMouse) * 0.5;
+      p.isMovingToMouse = true;
+      setTimeout(() => p.isMovingToMouse = false, 1000);
+    }
+
+    p.x += p.dx;
+    p.y += p.dy;
+
+    if (p.x < -circleRadius) p.x = canvas.width + circleRadius;
+    if (p.x > canvas.width + circleRadius) p.x = -circleRadius;
+    if (p.y < -circleRadius) p.y = canvas.height + circleRadius;
+    if (p.y > canvas.height + circleRadius) p.y = -circleRadius;
+
+    ctx.shadowBlur = shadowBlur;
+    ctx.shadowColor = color;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, circleRadius, 0, Math.PI * 2);
+    ctx.fillStyle = color;
+    ctx.fill();
+  });
+  requestAnimationFrame(createFluidEffect);
 }
 
-// Function to generate a random background color
-function getRandomBackgroundColor() {
-    return `#${Math.floor(Math.random()*16777215).toString(16)}`; // Random Hex Color for background
-}
+// ========== Sliders and UI ==========
+const blurSlider = document.getElementById("blurSlider");
+const radiusSlider = document.getElementById("radiusSlider");
+const shadowSlider = document.getElementById("shadowSlider");
+const smoothnessSlider = document.getElementById("smoothnessSlider");
+const speedSlider = document.getElementById("speedSlider");
+const circleCountSlider = document.getElementById("circleCountSlider");
+const circleCountValue = document.getElementById("circleCountValue");
+const colorPaletteList = document.getElementById("colorPaletteList");
 
-// Function to update the control panel with new color values
-function updateColorDisplay() {
-    const circleColorsContainer = document.getElementById('circleColors');
-    const backgroundColorHex = document.getElementById('backgroundColorHex');
-    
-    // Clear existing colors
-    circleColorsContainer.innerHTML = '';
-    
-    // Add the circle palette colors to the panel
-    colors.forEach(color => {
-        const colorItem = document.createElement('li');
-        colorItem.textContent = color;
-        colorItem.style.color = color;
-        circleColorsContainer.appendChild(colorItem);
-    });
-
-    // Display background color hex code
-    backgroundColorHex.textContent = `Background Color: ${document.body.style.backgroundColor}`;
-}
-
-// Add event listener to button to change color palette
-const changeColorButton = document.getElementById("changeColorButton");
-changeColorButton.addEventListener("click", () => {
-    colors = getRandomColorPalette(); // Update color palette with a random one
-    document.body.style.backgroundColor = getRandomBackgroundColor(); // Change background color randomly
-    updateColorDisplay(); // Update color display in the control panel
+blurSlider.addEventListener("input", () => {
+  blurAmount = parseInt(blurSlider.value);
+  glassEffect.style.backdropFilter = `blur(${blurAmount}px)`;
+});
+radiusSlider.addEventListener("input", () => {
+  circleRadius = parseInt(radiusSlider.value);
+});
+shadowSlider.addEventListener("input", () => {
+  shadowBlur = parseInt(shadowSlider.value);
+});
+smoothnessSlider.addEventListener("input", () => {
+  smoothnessFactor = parseFloat(smoothnessSlider.value);
+});
+speedSlider.addEventListener("input", () => {
+  speedFactor = parseFloat(speedSlider.value);
+  points.forEach(p => {
+    p.dx = (Math.random() - 0.5) * speedFactor;
+    p.dy = (Math.random() - 0.5) * speedFactor;
+  });
+});
+circleCountSlider.addEventListener("input", () => {
+  numPoints = parseInt(circleCountSlider.value);
+  circleCountValue.textContent = numPoints;
+  initPoints(numPoints);
 });
 
-// Start the animation
+// ========== Save Image with Blur Simulation ==========
+document.getElementById("saveImageBtn").addEventListener("click", async () => {
+  const panelContainer = document.getElementById("panelContainer");
+  const menuButtons = document.getElementById("menuButtons");
+
+  // Hide panels temporarily
+  panelContainer.style.display = "none";
+  menuButtons.style.display = "none";
+
+  try {
+    const stream = document.documentElement.captureStream(1);
+    const video = document.createElement("video");
+    video.srcObject = stream;
+    video.play();
+
+    await new Promise(resolve => setTimeout(resolve, 100)); // wait for frame to draw
+
+    const track = stream.getVideoTracks()[0];
+    const imageCapture = new ImageCapture(track);
+    const bitmap = await imageCapture.grabFrame();
+
+    // Draw bitmap to canvas
+    const tempCanvas = document.createElement("canvas");
+    tempCanvas.width = bitmap.width;
+    tempCanvas.height = bitmap.height;
+    const ctx = tempCanvas.getContext("2d");
+    ctx.drawImage(bitmap, 0, 0);
+
+    // Download as PNG
+    const link = document.createElement("a");
+    link.download = "blurred_background.png";
+    link.href = tempCanvas.toDataURL("image/png");
+    link.click();
+
+    track.stop();
+  } catch (err) {
+    console.error("Screen capture failed:", err);
+    alert("Screen capture not supported.");
+  } finally {
+    // Restore panels
+    panelContainer.style.display = "";
+    menuButtons.style.display = "";
+  }
+});
+
+// ========== Record Full Page (DOM) ==========
+const domRecordBtn = document.createElement("button");
+domRecordBtn.textContent = "Record Full Page (5s)";
+domRecordBtn.id = "recordFullPageBtn";
+document.getElementById("exportPanel").appendChild(domRecordBtn);
+
+domRecordBtn.addEventListener("click", async () => {
+  try {
+    const stream = document.documentElement.captureStream(30);
+    const mediaRecorder = new MediaRecorder(stream, { mimeType: "video/webm" });
+    const chunks = [];
+
+    mediaRecorder.ondataavailable = (e) => chunks.push(e.data);
+    mediaRecorder.onstop = () => {
+      const blob = new Blob(chunks, { type: "video/webm" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "fullpage_recording.webm";
+      link.click();
+    };
+
+    mediaRecorder.start();
+    setTimeout(() => mediaRecorder.stop(), 5000);
+  } catch (err) {
+    alert("Your browser does not support full-page capture with captureStream.");
+    console.error(err);
+  }
+});
+
+// ========== Color Palette UI ==========
+function updateColorUI() {
+  colorPaletteList.innerHTML = '';
+  colors.forEach((hex, i) => {
+    const li = document.createElement("li");
+    const swatch = document.createElement("div");
+    const label = document.createElement("span");
+    const input = document.createElement("input");
+
+    swatch.className = "colorSwatch";
+    swatch.style.backgroundColor = hex;
+    label.textContent = hex;
+    input.type = "color";
+    input.className = "colorInput";
+    input.value = hex;
+
+    input.addEventListener("input", (e) => {
+      colors[i] = e.target.value;
+      swatch.style.backgroundColor = e.target.value;
+      label.textContent = e.target.value;
+      if (i === 0) document.body.style.backgroundColor = e.target.value;
+    });
+
+    li.appendChild(swatch);
+    li.appendChild(label);
+    li.appendChild(input);
+    colorPaletteList.appendChild(li);
+  });
+  document.body.style.backgroundColor = colors[0];
+}
+
+document.getElementById("changeColorButton").addEventListener("click", () => {
+  colors = [`#${Math.floor(Math.random()*16777215).toString(16)}`].concat(
+    Array.from({ length: 6 }, () => `#${Math.floor(Math.random()*16777215).toString(16)}`)
+  );
+  updateColorUI();
+});
+
+document.getElementById("resetDefaultsBtn").addEventListener("click", () => {
+  blurAmount = defaultSettings.blur;
+  circleRadius = defaultSettings.radius;
+  shadowBlur = defaultSettings.shadow;
+  numPoints = defaultSettings.count;
+  smoothnessFactor = defaultSettings.smoothness;
+  speedFactor = defaultSettings.speed;
+
+  blurSlider.value = blurAmount;
+  radiusSlider.value = circleRadius;
+  shadowSlider.value = shadowBlur;
+  smoothnessSlider.value = smoothnessFactor;
+  speedSlider.value = speedFactor;
+  circleCountSlider.value = numPoints;
+  circleCountValue.textContent = numPoints;
+  glassEffect.style.backdropFilter = `blur(${blurAmount}px)`;
+
+  initPoints(numPoints); // Keep this so the new circle count reflects
+});
+
+
+// ========== Menu Toggle Logic ==========
+const openPanels = new Set();
+const toggleBtn = document.getElementById("togglePanelBtn");
+const menuButtons = document.getElementById("menuButtons");
+const panelContainer = document.getElementById("panelContainer");
+
+function updatePanelVisibility() {
+  panelContainer.querySelectorAll(".mini-panel").forEach(panel => {
+    if (openPanels.has(panel.id)) {
+      panel.classList.remove("hidden");
+    } else {
+      panel.classList.add("hidden");
+    }
+  });
+}
+
+toggleBtn.addEventListener("click", () => {
+  menuButtons.classList.toggle("hidden");
+  const isNowHidden = menuButtons.classList.contains("hidden");
+  panelContainer.querySelectorAll(".mini-panel").forEach(panel => {
+    panel.classList.toggle("hidden", isNowHidden);
+  });
+  if (!isNowHidden) updatePanelVisibility();
+});
+
+document.querySelectorAll('.panel-toggle').forEach(button => {
+  button.addEventListener('click', () => {
+    const targetId = button.getAttribute('data-target');
+    const panel = document.getElementById(targetId);
+    const isVisible = !panel.classList.contains("hidden");
+
+    if (isVisible) {
+      panel.classList.add("hidden");
+      openPanels.delete(targetId);
+    } else {
+      panel.classList.remove("hidden");
+      openPanels.add(targetId);
+    }
+  });
+});
+
+// ========== Initialize ==========
+glassEffect.style.backdropFilter = `blur(${blurAmount}px)`;
+updateColorUI();
 createFluidEffect();
-updateColorDisplay(); // Initially update the color display

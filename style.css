@@ -1,109 +1,189 @@
+/* Reset & Base */
 * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    background-color: #1b0cec;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
-
 html, body {
-    height: 100%;
-    overflow: hidden;
-    font-family: Arial, sans-serif;
-    position: relative;
-    background-color: black; /* Set page background to black */
+  height: 100%;
+  overflow: hidden;
+  font-family: 'Space Grotesk', sans-serif;
+  background-color: black;
 }
 
-/* The canvas for animation */
+/* Canvas */
 canvas {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none; /* Ensure the canvas doesn’t block interactions */
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  display: block;
+  z-index: 0;
 }
 
-
-canvas {
-    display: block; /* Make sure the canvas covers the entire screen */
-}
-/* Control Panel Styles */
-#controlPanel {
-    position: fixed;
-    bottom: 20px;
-    left: 20px;
-    background-color: white;
-    padding: 15px;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    z-index: 10;
-    display: flex;
-    flex-direction: column; /* Stack elements vertically */
-    justify-content: center; /* Vertically center the contents */
-    align-items: center; /* Align items to the left */
-    width: auto; /* Adjust width */
-    height: auto; /* Adjust height */
-}
-
-/* Button Styles */
-#controlPanel button {
-    background-color: #212121; /* Green background */
-    color: white;
-    border: none;
-    padding: 10px 36px;
-    text-align: center;
-    font-size: 16px;
-    border-radius: 5px;
-    cursor: pointer;
-    margin-bottom: 15px; /* Add margin to the bottom of the button */
-}
-
-#controlPanel button:hover {
-    background-color: #353535; /* Darker green on hover */
-}
-
-/* Color Display Styles */
-#colorsDisplay {
-    margin-top: 10px;
-    font-size: 14px;
-    display: flex;
-    flex-direction: column; /* Stack color information vertically */
-    align-items: flex-start; /* Align the items to the left */
-    background-color: white;
-}
-
-#colorsDisplay h3 {
-    margin-bottom: 5px;
-    background-color: white;
-
-}
-
-#circleColors {
-    list-style-type: none;
-    padding: 0;
-    margin: 0;
-    background-color: white;
-}
-
-#circleColors li {
-    margin: 5px 0;
-    background-color: white;
-}
-
-#backgroundColorHex {
-    font-weight: bold;
-    background-color: white;
-}
-
-/* The glass blur effect overlay */
+/* Glass Blur Overlay */
 #glassEffect {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(255, 255, 255, 0.1); /* Slight transparency for the frosted effect */
-    backdrop-filter: blur(90px); /* Apply the blur effect */
-    pointer-events: none; /* Allow interaction with elements behind the overlay */
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(90px);
+  pointer-events: none;
+  z-index: 1;
 }
 
+/* ☰ Menu Toggle Button */
+#togglePanelBtn {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  z-index: 100;
+  font-size: 24px;
+  background: black;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+}
+
+/* Horizontal Button Bar */
+.menu-buttons {
+  position: fixed;
+  bottom: 70px;
+  left: 20px;
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  z-index: 100;
+}
+.menu-buttons.hidden {
+  display: none;
+}
+.menu-buttons button {
+  background-color: black;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  font-size: 18px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.menu-buttons button:hover {
+  background-color: #333;
+}
+
+/* Vertical Panel Stack */
+#panelContainer {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-height: calc(100vh - 140px);
+  overflow-y: auto;
+  z-index: 90;
+}
+
+/* Individual Panels */
+.mini-panel {
+  background-color: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(14px);
+  padding: 14px 16px;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  color: #111;
+  width: 260px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.mini-panel.hidden {
+  display: none;
+}
+
+/* Color Palette Styles */
+#colorPaletteList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+#colorPaletteList li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.colorSwatch {
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  border: 1px solid #999;
+  box-shadow: 0 0 2px rgba(0, 0, 0, 0.3);
+}
+.colorInput {
+  width: 100px;
+  border: none;
+  outline: none;
+}
+
+/* Sliders */
+.sliderGroup {
+  display: flex;
+  flex-direction: column;
+  font-size: 14px;
+}
+.sliderGroup label {
+  margin-bottom: 4px;
+}
+.sliderGroup input[type="range"] {
+  width: 100%;
+}
+
+/* Buttons in Panels */
+.mini-panel button {
+  background-color: #212121;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  font-size: 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+.mini-panel button:hover {
+  background-color: #353535;
+}
+
+/* Scrollbar for Panels */
+#panelContainer::-webkit-scrollbar {
+  width: 6px;
+}
+#panelContainer::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+/* Mobile Responsive */
+@media (max-width: 600px) {
+  .menu-buttons {
+    flex-wrap: wrap;
+    bottom: 70px;
+    left: 10px;
+  }
+
+  #panelContainer {
+    left: 10px;
+    width: 90vw;
+  }
+
+  .mini-panel {
+    width: 100%;
+  }
+}
