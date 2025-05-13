@@ -39,8 +39,8 @@ canvas {
 /* ☰ Menu Toggle Button */
 #togglePanelBtn {
   position: fixed;
-  bottom: 20px;
-  left: 20px;
+  bottom: 30px;
+  left: 30px;
   z-index: 100;
   font-size: 24px;
   background: rgba(0, 0, 0, 0.70);
@@ -53,11 +53,16 @@ canvas {
   backdrop-filter: blur(20px);
 }
 
+#togglePanelBtn:hover {
+  background-color: #dcff67;
+  color: black;
+}
+
 /* Horizontal Button Bar */
 .menu-buttons {
   position: fixed;
-  bottom: 70px;
-  left: 20px;
+  bottom: 80px;
+  left: 30px;
   display: flex;
   flex-direction: row;
   gap: 10px;
@@ -76,18 +81,19 @@ canvas {
   cursor: pointer;
 }
 .menu-buttons button:hover {
-  background-color: #333333a5;
+  background-color: #dcff67;
+  color: black;
 }
 
 /* Vertical Panel Stack */
 #panelContainer {
   position: fixed;
-  top: 20px;
-  left: 20px;
+  top: 30px;
+  left: 30px;
   display: flex;
   flex-direction: column;
   gap: 16px;
-  max-height: calc(100vh - 140px);
+  max-height: calc(100vh - 160px);
   overflow-y: auto;
   z-index: 90;
 }
@@ -161,7 +167,8 @@ canvas {
   transition: background-color 0.2s ease;
 }
 .mini-panel button:hover {
-  background-color: #353535;
+  background-color: #dcff67;
+  color: black;
 }
 
 /* Scrollbar for Panels */
