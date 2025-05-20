@@ -13,7 +13,7 @@ const defaultSettings = {
   count: 120,
   smoothness: 6.6,
   speed: 1.7,
-  colors: ['#1b0cec', '#FF9AAD', '#FF6B6B', '#FF9E2C', '#D6A3FF', '#BE33FF', '#F8D0B8']
+  colors: ['#fffd8c', '#97fff4', '#ff6b6b', '#7091f5', '#d6a3ff', '#bae9bd', '#535ef9']
 };
 
 let blurAmount = defaultSettings.blur;
@@ -124,7 +124,7 @@ function createFluidEffect() {
   requestAnimationFrame(createFluidEffect);
 }
 
-// ========== Sliders and UI ==========
+// ========== UI & Controls ==========
 const blurSlider = document.getElementById("blurSlider");
 const radiusSlider = document.getElementById("radiusSlider");
 const shadowSlider = document.getElementById("shadowSlider");
@@ -160,79 +160,14 @@ circleCountSlider.addEventListener("input", () => {
   initPoints(numPoints);
 });
 
-// ========== Save Image with Blur Simulation ==========
-/*document.getElementById("saveImageBtn").addEventListener("click", () => {
-  const panelContainer = document.getElementById("panelContainer");
-  const menuButtons = document.getElementById("menuButtons");
-
-  // Hide UI panels temporarily
-  panelContainer.style.display = "none";
-  menuButtons.style.display = "none";
-
-  setTimeout(() => {
-    html2canvas(document.body, {
-      useCORS: true,
-      allowTaint: true,
-      backgroundColor: null,
-      scale: 2
-    }).then(canvas => {
-      const image = canvas.toDataURL("image/png");
-      const link = document.createElement("a");
-      link.download = "screenshot_with_blur.png";
-      link.href = image;
-      link.click();
-    }).catch(err => {
-      console.error("html2canvas failed:", err);
-      alert("Screenshot failed.");
-    }).finally(() => {
-      // Restore UI
-      panelContainer.style.display = "";
-      menuButtons.style.display = "";
-    });
-  }, 100); // Give browser a moment to re-render without UI
-});
-
-// ========== Record Full Page (DOM) ==========
-const domRecordBtn = document.createElement("button");
-domRecordBtn.textContent = "Record Full Page (5s)";
-domRecordBtn.id = "recordFullPageBtn";
-document.getElementById("exportPanel").appendChild(domRecordBtn);
-
-domRecordBtn.addEventListener("click", async () => {
-  try {
-    const stream = document.documentElement.captureStream(30);
-    const mediaRecorder = new MediaRecorder(stream, { mimeType: "video/webm" });
-    const chunks = [];
-
-    mediaRecorder.ondataavailable = (e) => chunks.push(e.data);
-    mediaRecorder.onstop = () => {
-      const blob = new Blob(chunks, { type: "video/webm" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = "fullpage_recording.webm";
-      link.click();
-    };
-
-    mediaRecorder.start();
-    setTimeout(() => mediaRecorder.stop(), 5000);
-  } catch (err) {
-    alert("Your browser does not support full-page capture with captureStream.");
-    console.error(err);
-  }
-});
-*/
-// ========== Color Palette UI ==========
+// ========== Palette UI ==========
 function updateColorUI() {
   colorPaletteList.innerHTML = '';
   colors.forEach((hex, i) => {
     const li = document.createElement("li");
-    const swatch = document.createElement("div");
     const label = document.createElement("span");
     const input = document.createElement("input");
 
-    swatch.className = "colorSwatch";
-    swatch.style.backgroundColor = hex;
     label.textContent = hex;
     input.type = "color";
     input.className = "colorInput";
@@ -240,12 +175,10 @@ function updateColorUI() {
 
     input.addEventListener("input", (e) => {
       colors[i] = e.target.value;
-      swatch.style.backgroundColor = e.target.value;
       label.textContent = e.target.value;
       if (i === 0) document.body.style.backgroundColor = e.target.value;
     });
 
-    li.appendChild(swatch);
     li.appendChild(label);
     li.appendChild(input);
     colorPaletteList.appendChild(li);
@@ -254,82 +187,97 @@ function updateColorUI() {
 }
 
 document.getElementById("changeColorButton").addEventListener("click", () => {
-  colors = [`#${Math.floor(Math.random()*16777215).toString(16)}`].concat(
-    Array.from({ length: 6 }, () => `#${Math.floor(Math.random()*16777215).toString(16)}`)
+  colors = [`#${Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0')}`].concat(
+    Array.from({ length: 6 }, () =>
+      `#${Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0')}`)
   );
   updateColorUI();
 });
 
-document.getElementById("resetDefaultsBtn").addEventListener("click", () => {
-  blurAmount = defaultSettings.blur;
-  circleRadius = defaultSettings.radius;
-  shadowBlur = defaultSettings.shadow;
-  numPoints = defaultSettings.count;
-  smoothnessFactor = defaultSettings.smoothness;
-  speedFactor = defaultSettings.speed;
+document.getElementById("tweakColorButton").addEventListener("click", () => {
+  function hexToHSL(hex) {
+    const { r, g, b } = hexToRgb(hex);
+    const rP = r / 255, gP = g / 255, bP = b / 255;
+    const max = Math.max(rP, gP, bP), min = Math.min(rP, gP, bP);
+    let h, s, l = (max + min) / 2;
 
-  blurSlider.value = blurAmount;
-  radiusSlider.value = circleRadius;
-  shadowSlider.value = shadowBlur;
-  smoothnessSlider.value = smoothnessFactor;
-  speedSlider.value = speedFactor;
-  circleCountSlider.value = numPoints;
-  circleCountValue.textContent = numPoints;
-  glassEffect.style.backdropFilter = `blur(${blurAmount}px)`;
+    if (max === min) {
+      h = s = 0;
+    } else {
+      const d = max - min;
+      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+      switch (max) {
+        case rP: h = (gP - bP) / d + (gP < bP ? 6 : 0); break;
+        case gP: h = (bP - rP) / d + 2; break;
+        case bP: h = (rP - gP) / d + 4; break;
+      }
+      h *= 60;
+    }
+    return { h, s, l };
+  }
 
-  initPoints(numPoints); // Keep this so the new circle count reflects
+  function HSLToHex({ h, s, l }) {
+    const c = (1 - Math.abs(2 * l - 1)) * s;
+    const x = c * (1 - Math.abs((h / 60) % 2 - 1));
+    const m = l - c / 2;
+    let r = 0, g = 0, b = 0;
+
+    if (h < 60)      [r, g, b] = [c, x, 0];
+    else if (h < 120)[r, g, b] = [x, c, 0];
+    else if (h < 180)[r, g, b] = [0, c, x];
+    else if (h < 240)[r, g, b] = [0, x, c];
+    else if (h < 300)[r, g, b] = [x, 0, c];
+    else             [r, g, b] = [c, 0, x];
+
+    const toHex = (v) => Math.round((v + m) * 255).toString(16).padStart(2, '0');
+    return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+  }
+
+  colors = colors.map(hex => {
+    const hsl = hexToHSL(hex);
+    hsl.h = (hsl.h + 30) % 360;
+    return HSLToHex(hsl);
+  });
+
+  updateColorUI();
 });
 
+document.getElementById("lightDarkButton").addEventListener("click", () => {
+  const isNowDark = document.body.classList.toggle("gradient-dark-mode");
+  colors = colors.map(hex => {
+    const { r, g, b } = hexToRgb(hex);
+    const adjust = (v) => {
+      const amount = 30;
+      return isNowDark
+        ? Math.max(0, v - amount)
+        : Math.min(255, v + amount);
+    };
+    const toHex = (v) => adjust(v).toString(16).padStart(2, '0');
+    return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+  });
+  updateColorUI();
+});
 
-// ========== Menu Toggle Logic ==========
-const openPanels = new Set();
+// ========== Toggle Panel Button ==========
 const toggleBtn = document.getElementById("togglePanelBtn");
-const menuButtons = document.getElementById("menuButtons");
 const panelContainer = document.getElementById("panelContainer");
 
-function updatePanelVisibility() {
-  panelContainer.querySelectorAll(".mini-panel").forEach(panel => {
-    if (openPanels.has(panel.id)) {
-      panel.classList.remove("hidden");
-    } else {
-      panel.classList.add("hidden");
-    }
-  });
-}
-
 toggleBtn.addEventListener("click", () => {
-  menuButtons.classList.toggle("hidden");
-  const isNowHidden = menuButtons.classList.contains("hidden");
-  panelContainer.querySelectorAll(".mini-panel").forEach(panel => {
-    panel.classList.toggle("hidden", isNowHidden);
-  });
-  if (!isNowHidden) updatePanelVisibility();
+  const isHidden = panelContainer.classList.toggle("hidden");
+  document.body.classList.toggle("panels-hidden", isHidden); // Important fix for fade logic
+  toggleBtn.textContent = isHidden ? "☰ Show Controls" : "☰ Hide Controls";
 });
 
-document.querySelectorAll('.panel-toggle').forEach(button => {
-  button.addEventListener('click', () => {
-    const targetId = button.getAttribute('data-target');
-    const panel = document.getElementById(targetId);
-    const isVisible = !panel.classList.contains("hidden");
-
-    if (isVisible) {
-      panel.classList.add("hidden");
-      openPanels.delete(targetId);
-    } else {
-      panel.classList.remove("hidden");
-      openPanels.add(targetId);
-    }
-  });
+document.querySelectorAll('input[type="range"]').forEach(slider => {
+  const updateGradient = () => {
+    const value = ((slider.value - slider.min) / (slider.max - slider.min)) * 100;
+    slider.style.setProperty('--value', `${value}%`);
+  };
+  slider.addEventListener('input', updateGradient);
+  updateGradient(); // initialize
 });
 
-// Hide the toggle button after 10 seconds
-setTimeout(() => {
-  const toggleWrapper = document.getElementById("toggleWrapper");
-  toggleWrapper.classList.add("hide-toggle");
-}, 10000);
-
-
-// ========== Initialize ==========
+// ========== Init ==========
 glassEffect.style.backdropFilter = `blur(${blurAmount}px)`;
 updateColorUI();
 createFluidEffect();

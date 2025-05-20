@@ -6,40 +6,32 @@
   <title>Gradient Generator</title>
   <link rel="stylesheet" href="style.css" />
   <style>
-@import url('https://fonts.googleapis.com/css2?family=Assistant:wght@200..800&family=Exo:ital,wght@0,100..900;1,100..900&family=Inconsolata:wght@200..900&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
-</style>
+@import url('https://fonts.googleapis.com/css2?family=Jost:ital,wght@0,100..900;1,100..900&display=swap');  </style>
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-
 </head>
 <body>
   <!-- Canvas and Glass Overlay -->
   <canvas id="gradientCanvas"></canvas>
   <div id="glassEffect"></div>
 
-  <!-- ☰ Menu Toggle Button -->
-  <div id="toggleWrapper">
-  <button id="togglePanelBtn">☰</button>
-</div>
-
-
-  <!-- Horizontal Menu Buttons -->
-  <div id="menuButtons" class="menu-buttons hidden">
-    <button class="panel-toggle" data-target="palettePanel">Palette</button>
-    <button class="panel-toggle" data-target="slidersPanel">Sliders</button>
-    <!-- <button class="panel-toggle" data-target="exportPanel">Export</button> -->
+  <!-- Toggle Panel Button -->
+  <div id="togglePanelContainer">
+    <button id="togglePanelBtn">☰ Hide Controls</button>
   </div>
 
-  <!-- Side Panel Container -->
+  <!-- Side Panel Container (visible on load) -->
   <div id="panelContainer">
     <!-- Palette Panel -->
-    <div id="palettePanel" class="mini-panel hidden">
+    <div id="palettePanel" class="mini-panel">
       <h3>Palette</h3>
       <ul id="colorPaletteList"></ul>
       <button id="changeColorButton">Generate New Palette</button>
+      <button id="tweakColorButton">Tweak Palette</button>
+      <button id="lightDarkButton">Light/Dark Mode Toggle</button>
     </div>
 
     <!-- Sliders Panel -->
-    <div id="slidersPanel" class="mini-panel hidden">
+    <div id="slidersPanel" class="mini-panel">
       <h3>Sliders</h3>
       <div class="sliderGroup">
         <label for="blurSlider">Blur Strength</label>
@@ -67,15 +59,7 @@
       </div>
       <button id="resetDefaultsBtn">Reset Sliders</button>
     </div>
-
-    <!-- Export Panel -->
-    <!--<div id="exportPanel" class="mini-panel hidden">
-      <h3>Export</h3>
-      <button id="saveImageBtn">Save Image</button>
-      
-    </div>
   </div>
--->
 
   <!-- Main Script -->
   <script src="script.js"></script>
