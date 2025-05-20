@@ -51,7 +51,7 @@ canvas {
 
 #togglePanelBtn {
   width: 100%;
-  background-color: rgba(0, 0, 0, 0.4);
+  background: rgba(9, 0, 77, 0.22);
   color: #111;
   border: none;
   padding: 10px 16px;
@@ -98,7 +98,7 @@ body.panels-hidden #togglePanelContainer:not(:hover) #togglePanelBtn {
 
 /* ===== Individual Mini Panels ===== */
 .mini-panel {
-  background: rgba(0, 0, 0, 0.2);
+  background: rgba(9, 0, 77, 0.22);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-radius: 12px;
